@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+  <!-- CSS that applies Google styling to buttons and other elements. -->
+  <!-- see https://developers.google.com/gsuite/add-ons/guides/css -->
+  <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+
+  <script type="text/javascript">
+    /* UNCOMMENT IF USING FORMS
+      // Prevent forms from submitting.
+      // Without it, button clicks will trigger a [forbidden] redirect...
+      window.addEventListener('load', () => {
+        document.querySelectorAll('form').forEach((form) =>
+          form.addEventListener('submit', (event) => event.preventDefault())
+        );
+      });
+    */
+  </script>
+</head>
+
+<body>
+  <!-- main area: options + buttons -->
+  <div class="sidebar branding-below">
+
+    <div class="block">
+      <b>CSV</b>
+      <div>
+        <label for="separator">Separator</label>
+        <input type="text" name="separator" id="separator" value="," minLength="1" maxLength="3" size="4" required>
+      </div>
+    </div>
+
+    <div class="block">
+      <b>Table</b>
+      <div>
+        <label for="borderColor">BorderColor</label>
+        <input type="color" name="borderColor" id="borderColor" value="#000" required>
+      </div>
+      <br>
+      <div>
+        <input type="checkbox" name="sameWidth" id="sameWidth" checked="checked">
+        <label for="sameWidth">Create missing cells</label>
+      </div>
+      <div>
+        <input type="checkbox" name="addNewline" id="addNewline" checked="checked">
+        <label for="addNewline">Surround with new lines</label>
+      </div>
+    </div>
+
+    <div class="block" id="button-bar">
+      <button id="create-table" class="action">Create table</button>
+      <button id="save-prefs">Save preferences</button>
+    </div>
+
+    <!-- error container -->
+    <div id="error" class="error block"></div>
+  </div>
+
+  <!-- bottom area: trademark -->
+  <div class="sidebar bottom" style="text-align: center">
+    <span class="gray">Made with ♡ by Derlin</span>
+  </div>
+
+  <!-- Inject jQuery -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+  <script>
+    /** On document load, assign click handlers to buttons and load preferences */
+    $(function () {
+      $('#save-prefs').click(savePrefs);
+      $('#create-table').click(createTable);
+      google.script.run.withSuccessHandler(setPrefs)
+        .withFailureHandler(showError).loadPreferences();
+    });
+
+    /** Read preferences from HTML */
+    function getPrefs() {
+      return {
+        separator: $('#separator').val(),
+        sameWidth: $('#sameWidth').is(':checked'),
+        addNewline: $('#addNewline').is(':checked'),
+        borderColor: $('#borderColor').val()
+      };
+    }
+
+    /** Set HTML inputs from preferences */
+    function setPrefs(prefs) {
+      console.log('Got preferences', prefs);
+      // regular inputs
+      for (let key of ['separator', 'borderColor']) {
+        if (prefs.hasOwnProperty(key))
+          $('#' + key).val(prefs[key]);
+      }
+      // checkboxes
+      for (let key of ['sameWidth', 'addNewline']) {
+        if (prefs.hasOwnProperty(key))
+          $('#' + key).prop('checked', prefs[key]);
+      }
+    }
+
+    /** Save preferences by calling Server script */
+    function savePrefs() {
+      let prefs = getPrefs();
+      console.log('Will save preferences', prefs);
+      google.script.run.withFailureHandler(showError)
+        .savePreferences(prefs);
+    }
+
+    /** Callback that runs a server-side function to generate the table from a CSV selection */
+    function createTable() {
+      // Clear errors
+      showError("");
+
+      // Parse+check options
+      let prefs = getPrefs();
+      if (prefs.separator.length == 0) {
+        showError("The column separator is mandatory", $('#button-bar'));
+        return;
+      }
+
+      // Call server-side function
+      this.disabled = true;
+      google.script.run
+        .withSuccessHandler((returnSuccess, element) => {
+          element.disabled = false
+        })
+        .withFailureHandler((msg, element) => {
+          showError(msg);
+          element.disabled = false;
+        })
+        .withUserObject(this)
+        .createTable(prefs);
+    }
+
+    /**
+    * Change the text of the error container.
+    * @param {string} msg The error message to display.
+    */
+    function showError(msg) {
+      $("#error").html(msg);
+    }
+  </script>
+</body>
+
+</html>
