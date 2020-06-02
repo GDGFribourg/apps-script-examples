@@ -9,7 +9,7 @@ function parseCSV(a, sep) {
   // http://stackoverflow.com/questions/1155678/javascript-string-newline-character
   // var universalNewline = /\r\n|\r|\n/g;
   // var a = s.split(universalNewline);
-  for (var i in a) {
+  for (let i in a) {
     for (var f = a[i].split(sep = sep || ","), x = f.length - 1, tl; x >= 0; x--) {
       if (f[x].replace(/"\s+$/, '"').charAt(f[x].length - 1) == '"') {
         if ((tl = f[x].replace(/^\s+"/, '"')).length > 1 && tl.charAt(0) == '"') {
@@ -32,8 +32,8 @@ function parseCSV(a, sep) {
 function normalize2DArray(arr, filler= () => "") {
   var max_cols = Math.max(...arr.map(row => row.length));
   // make all rows the same width
-  for (var i = 0; i < arr.length; ++i) {
-    for (var c = arr[i].length; c < max_cols; c++) {
+  for (let i = 0; i < arr.length; ++i) {
+    for (let c = arr[i].length; c < max_cols; c++) {
       arr[i].push(filler());
     }
   }

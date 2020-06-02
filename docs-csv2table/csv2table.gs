@@ -63,18 +63,18 @@ function createTableFromPrefs() {
 *  - {string} borderColor: hex color of the border (optional)
 */
 function createTable(options) {
-  let { separator, sameWidth = true, addNewline = true, borderColor } = options;
-  let selection = DocumentApp.getActiveDocument().getSelection();
+  const { separator, sameWidth = true, addNewline = true, borderColor } = options;
+  const selection = DocumentApp.getActiveDocument().getSelection();
 
   if (selection) {
     // We have a selection !
-    let body = DocumentApp.getActiveDocument().getBody();
-    let elements = selection.getRangeElements();
+    const body = DocumentApp.getActiveDocument().getBody();
+    const elements = selection.getRangeElements();
 
     // Iterate through the selection elements, extracting each line as text
     // Keep track of the last non-empty element as well
-    let lines = [];
-    for (var i = 0; i < elements.length; ++i) {
+    const lines = [];
+    for (let i = 0; i < elements.length; ++i) {
       let elt = elements[i].getElement();
       let type = elt.getType();
 
@@ -97,7 +97,7 @@ function createTable(options) {
     }
 
     // Parse the selected lines (CSV) into a 2D array of table cells
-    let cells = parseCSV(lines, separator);
+    const cells = parseCSV(lines, separator);
     Logger.log('Parsed cells', cells);
 
     // If asked, ensure all the rows have the same number of columns
